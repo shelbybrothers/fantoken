@@ -140,37 +140,146 @@
 
       </nav>
 
-      <a id="connectButton" class="btn btn-primary">Connect Wallet</a>
-       <script>
-    const connectButton = document.getElementById('connectButton');
-
-    async function connectWallet() {
-      if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          const account = accounts[0];
-
-          // Fetch BNB balance
-          const balanceInWei = await window.ethereum.request({
-            method: 'eth_getBalance',
-            params: [account, 'latest']
+      <head>
+        <meta charset="UTF-8">
+        <title>BNB Wallet Connect</title>
+        <style>
+          :root {
+            --bnb-yellow: #f0b90b;
+            --bnb-black: #181a20;
+            --bnb-dark: #202225;
+            --bnb-gray: #2b2f36;
+            --bnb-white: #ffffff;
+          }
+      
+          body {
+            background-color: var(--bnb-black);
+            color: var(--bnb-white);
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+          }
+      
+          #walletContainer {
+            position: relative;
+            display: inline-block;
+          }
+      
+          #connectButton {
+            background-color: var(--bnb-yellow);
+            color: var(--bnb-black);
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+          }
+      
+          #connectButton:hover {
+            background-color: #ffcc00;
+          }
+      
+          #walletPopup {
+            display: none;
+            position: absolute;
+            top: 110%;
+            left: 0;
+            background-color: var(--bnb-dark);
+            border: 1px solid var(--bnb-yellow);
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            min-width: 200px;
+          }
+      
+          #walletContainer:hover #walletPopup {
+            display: block;
+          }
+      
+          #walletAddress {
+            font-size: 14px;
+            color: var(--bnb-white);
+            margin-bottom: 10px;
+          }
+      
+          #disconnectButton {
+            background-color: var(--bnb-yellow);
+            color: var(--bnb-black);
+            border: none;
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+          }
+      
+          #disconnectButton:hover {
+            background-color: #ffcc00;
+          }
+        </style>
+      </head>
+      <body>
+      
+        <div id="walletContainer">
+          <button id="connectButton">Connect Wallet</button>
+          <div id="walletPopup">
+            <div id="walletAddress">0x000...000</div>
+            <button id="disconnectButton">Disconnect</button>
+          </div>
+        </div>
+      
+        <script>
+          const connectButton = document.getElementById('connectButton');
+          const disconnectButton = document.getElementById('disconnectButton');
+          const walletAddressDiv = document.getElementById('walletAddress');
+          let currentAccount = null;
+      
+          async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask) {
+              try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                currentAccount = accounts[0];
+                const shortAddr = currentAccount.slice(0, 6) + "..." + currentAccount.slice(-4);
+      
+                // Get BNB Balance
+                const balanceInWei = await window.ethereum.request({
+                  method: 'eth_getBalance',
+                  params: [currentAccount, 'latest']
+                });
+                const balanceInEth = parseFloat(parseInt(balanceInWei, 16) / (10 ** 18)).toFixed(4);
+      
+                connectButton.innerText = `Balance: ${balanceInEth} BNB`;
+                walletAddressDiv.innerText = shortAddr;
+              } catch (err) {
+                console.error('Connection error:', err);
+                alert("Connection failed");
+              }
+            } else {
+              alert("MetaMask not detected. Redirecting...");
+              window.open("https://metamask.io/download/", "_blank");
+            }
+          }
+      
+          function disconnectWallet() {
+            currentAccount = null;
+            connectButton.innerText = "Connect Wallet";
+            walletAddressDiv.innerText = "";
+          }
+      
+          connectButton.addEventListener('click', () => {
+            if (!currentAccount) {
+              connectWallet();
+            }
           });
-
-          const balanceInEth = parseFloat(parseInt(balanceInWei, 16) / (10 ** 18)).toFixed(4);
-          connectButton.innerText = `Balance: ${balanceInEth} BNB`;
-
-        } catch (err) {
-          console.error('Error connecting:', err);
-          alert('Connection failed');
-        }
-      } else {
-        alert("MetaMask not detected. Redirecting...");
-        window.open("https://metamask.io/download/", "_blank");
-      }
-    }
-
-    connectButton.addEventListener('click', connectWallet);
-  </script>
+      
+          disconnectButton.addEventListener('click', () => {
+            disconnectWallet();
+          });
+        </script>
+      
+      </body>
 
       <button class="nav-open-btn" aria-label="open menu" data-nav-toggler>
         <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
